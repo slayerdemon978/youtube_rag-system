@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Transcript RAG System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fab fa-youtube"></i> YouTube Transcript RAG System</h1>
+            <p>Fetch YouTube transcripts and ask questions using AI</p>
+        </header>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">
+                            <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-triangle' }}"></i>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="main-content">
+            <!-- Left Panel: Controls -->
+            <div class="left-panel">
+                <div class="section">
+                    <h2><i class="fas fa-download"></i> Fetch Transcript</h2>
+                    <form action="/fetch_transcript" method="POST" class="form-group">
+                        <label for="video_url">YouTube Video URL:</label>
+                        <input type="url" id="video_url" name="video_url" placeholder="https://www.youtube.com/watch?v=..." required>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-download"></i> Fetch Transcript
+                        </button>
+                    </form>
+                </div>
+
+                <div class="section">
+                    <h2><i class="fas fa-list"></i> Fetch Playlist</h2>
+                    <form action="/fetch_playlist" method="POST" class="form-group">
+                        <label for="playlist_url">YouTube Playlist URL:</label>
+                        <input type="url" id="playlist_url" name="playlist_url" placeholder="https://www.youtube.com/playlist?list=..." required>
+                        <button type="submit" class="btn btn-secondary">
+                            <i class="fas fa-list"></i> Fetch Playlist
+                        </button>
+                    </form>
+                </div>
+
+                <div class="section">
+                    <h2><i class="fas fa-database"></i> Create Vector Store</h2>
+                    {% if transcripts %}
+                        <form action="/create_vector_store" method="POST" class="form-group">
+                            <label for="filename">Select Transcript:</label>
+                            <select id="filename" name="filename" required>
+                                <option value="">Choose a transcript...</option>
+                                {% for transcript in transcripts %}
+                                    <option value="{{ transcript.filename }}">{{ transcript.display_name }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-database"></i> Create Vector Store
+                            </button>
+                        </form>
+                    {% else %}
+                        <p class="no-data">No transcripts available. Fetch some videos first!</p>
+                    {% endif %}
+                </div>
+
+                <div class="section">
+                    <h2><i class="fas fa-info-circle"></i> Available Data</h2>
+                    <div class="data-info">
+                        <div class="data-item">
+                            <strong>Transcripts:</strong> {{ transcripts|length }}
+                        </div>
+                        <div class="data-item">
+                            <strong>Vector Stores:</strong> {{ vector_stores|length }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Q&A -->
+            <div class="right-panel">
+                <div class="section">
+                    <h2><i class="fas fa-question-circle"></i> Ask Questions</h2>
+                    {% if vector_stores %}
+                        <div class="form-group">
+                            <label for="transcript-select">Select Transcript:</label>
+                            <select id="transcript-select" required>
+                                <option value="">Choose a transcript...</option>
+                                {% for store in vector_stores %}
+                                    <option value="{{ store }}">{{ store.replace('_', ' ') }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="question-input">Your Question:</label>
+                            <textarea id="question-input" placeholder="Ask anything about the selected video transcript..." rows="3"></textarea>
+                        </div>
+
+                        <button id="ask-btn" class="btn btn-primary" disabled>
+                            <i class="fas fa-paper-plane"></i> Ask Question
+                        </button>
+
+                        <div id="loading" class="loading" style="display: none;">
+                            <i class="fas fa-spinner fa-spin"></i> Generating answer...
+                        </div>
+
+                        <div id="answer-section" class="answer-section" style="display: none;">
+                            <h3><i class="fas fa-robot"></i> AI Answer</h3>
+                            <div id="answer-content" class="answer-content"></div>
+                            <div class="answer-meta">
+                                <small>Question: <span id="asked-question"></span></small><br>
+                                <small>Transcript: <span id="used-transcript"></span></small>
+                            </div>
+                        </div>
+                    {% else %}
+                        <p class="no-data">No vector stores available. Create some vector stores first!</p>
+                    {% endif %}
+                </div>
+
+                <div class="section">
+                    <h2><i class="fas fa-history"></i> Recent Questions</h2>
+                    <div id="question-history" class="question-history">
+                        <p class="no-data">No questions asked yet.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Enable/disable ask button based on form completion
+        const transcriptSelect = document.getElementById('transcript-select');
+        const questionInput = document.getElementById('question-input');
+        const askBtn = document.getElementById('ask-btn');
+        const loading = document.getElementById('loading');
+        const answerSection = document.getElementById('answer-section');
+        const answerContent = document.getElementById('answer-content');
+        const askedQuestion = document.getElementById('asked-question');
+        const usedTranscript = document.getElementById('used-transcript');
+        const questionHistory = document.getElementById('question-history');
+
+        let historyCount = 0;
+
+        function checkFormCompletion() {
+            const transcriptSelected = transcriptSelect.value.trim() !== '';
+            const questionEntered = questionInput.value.trim() !== '';
+            askBtn.disabled = !(transcriptSelected && questionEntered);
+        }
+
+        transcriptSelect.addEventListener('change', checkFormCompletion);
+        questionInput.addEventListener('input', checkFormCompletion);
+
+        // Handle question submission
+        askBtn.addEventListener('click', async function() {
+            const transcript = transcriptSelect.value;
+            const question = questionInput.value.trim();
+
+            if (!transcript || !question) {
+                alert('Please select a transcript and enter a question.');
+                return;
+            }
+
+            // Show loading
+            loading.style.display = 'block';
+            answerSection.style.display = 'none';
+            askBtn.disabled = true;
+
+            try {
+                const response = await fetch('/ask_question', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        question: question,
+                        transcript: transcript
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Display answer
+                    answerContent.textContent = data.answer;
+                    askedQuestion.textContent = data.question;
+                    usedTranscript.textContent = data.transcript.replace('_', ' ');
+                    
+                    answerSection.style.display = 'block';
+
+                    // Add to history
+                    addToHistory(data.question, data.answer, data.transcript);
+
+                    // Clear question input
+                    questionInput.value = '';
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                loading.style.display = 'none';
+                checkFormCompletion();
+            }
+        });
+
+        function addToHistory(question, answer, transcript) {
+            historyCount++;
+            
+            if (historyCount === 1) {
+                questionHistory.innerHTML = '';
+            }
+
+            const historyItem = document.createElement('div');
+            historyItem.className = 'history-item';
+            historyItem.innerHTML = `
+                <div class="history-question">
+                    <strong>Q${historyCount}:</strong> ${question}
+                </div>
+                <div class="history-answer">
+                    <strong>A:</strong> ${answer.substring(0, 100)}${answer.length > 100 ? '...' : ''}
+                </div>
+                <div class="history-meta">
+                    <small>Transcript: ${transcript.replace('_', ' ')}</small>
+                </div>
+            `;
+            
+            questionHistory.insertBefore(historyItem, questionHistory.firstChild);
+
+            // Keep only last 5 items
+            while (questionHistory.children.length > 5) {
+                questionHistory.removeChild(questionHistory.lastChild);
+            }
+        }
+
+        // Allow Enter key to submit question
+        questionInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (!askBtn.disabled) {
+                    askBtn.click();
+                }
+            }
+        });
+
+        // Auto-hide flash messages after 5 seconds
+        setTimeout(function() {
+            const flashMessages = document.querySelectorAll('.flash-message');
+            flashMessages.forEach(function(message) {
+                message.style.opacity = '0';
+                setTimeout(function() {
+                    message.style.display = 'none';
+                }, 300);
+            });
+        }, 5000);
+    </script>
+</body>
+</html>
