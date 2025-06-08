@@ -28,7 +28,7 @@ def demo_basic_functionality():
     print("✅ Transcript Fetcher - Ready")
     print("✅ Vector Store - Ready") 
     print("✅ RAG Engine - Ready")
-    print("✅ Web Interface - Running on port 12000")
+    print("✅ Web Interface - Running on port 12001")
     
     print("\n🌐 Web Interface:")
     print("The Flask web application is running and provides:")
@@ -58,7 +58,7 @@ def demo_basic_functionality():
     print("   - Context-aware responses")
     
     print("\n🚀 Quick Start:")
-    print("1. Open your browser to http://localhost:12000")
+    print("1. Open your browser to http://localhost:12001")
     print("2. Paste a YouTube video URL")
     print("3. Click 'Fetch Transcript'")
     print("4. Select the transcript from dropdown")

@@ -53,7 +53,7 @@ pip install -r requirements.txt
 python app.py
 ```
 
-The application will be available at `http://localhost:12000`
+The application will be available at `http://localhost:12001`
 
 ### 4. Alternative: Use CLI Interface
 
