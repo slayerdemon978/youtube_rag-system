@@ -118,18 +118,36 @@ def fetch_transcript_route():
         
         if result['success']:
             # Create vector store automatically
-            base_name = create_vector_store(result['file_path'])
-            flash(f'✅ Transcript fetched and vector store created for: {result["title"]}', 'success')
+            try:
+                base_name = create_vector_store(result['file_path'])
+                success_msg = f'✅ Transcript fetched and vector store created for: {result["title"]}'
+                
+                # Add suggestions if any
+                if result.get('suggestions'):
+                    for suggestion in result['suggestions']:
+                        flash(f'ℹ️ {suggestion}', 'info')
+                
+                flash(success_msg, 'success')
+            except Exception as e:
+                flash(f'✅ Transcript fetched for: {result["title"]}', 'success')
+                flash(f'⚠️ Failed to create vector store: {str(e)}. You can create it manually.', 'warning')
         else:
-            # Show error with option for manual input
+            # Show error with helpful suggestions
             error_msg = f'❌ Failed to fetch transcript for "{result["title"] or "video"}": {result["error"]}'
             flash(error_msg, 'error')
-            flash('💡 You can manually add the transcript using the "Manual Input" section below.', 'info')
+            
+            # Show suggestions
+            if result.get('suggestions'):
+                for suggestion in result['suggestions'][:3]:  # Limit to 3 suggestions
+                    flash(f'💡 {suggestion}', 'info')
+            else:
+                flash('💡 You can manually add the transcript using the "Manual Input" section below.', 'info')
         
         return redirect(url_for('index'))
         
     except Exception as e:
         flash(f'❌ Error processing video: {str(e)}', 'error')
+        flash('💡 Try using the "Manual Transcript Input" section if the URL is valid.', 'info')
         return redirect(url_for('index'))
 
 @app.route('/fetch_playlist', methods=['POST'])
@@ -207,9 +225,18 @@ def manual_transcript_route():
         result = save_manual_transcript(title, transcript_text)
         
         if result['success']:
+            # Show warnings if any
+            if result.get('warnings'):
+                for warning in result['warnings']:
+                    flash(f'⚠️ {warning}', 'warning')
+            
             # Create vector store automatically
-            base_name = create_vector_store(result['file_path'])
-            flash(f'✅ Manual transcript saved and vector store created for: {result["title"]}', 'success')
+            try:
+                base_name = create_vector_store(result['file_path'])
+                flash(f'✅ Manual transcript saved and vector store created for: {result["title"]}', 'success')
+            except Exception as e:
+                flash(f'✅ Manual transcript saved for: {result["title"]}', 'success')
+                flash(f'⚠️ Failed to create vector store: {str(e)}. You can create it manually.', 'warning')
         else:
             flash(f'❌ Failed to save manual transcript: {result["error"]}', 'error')
         

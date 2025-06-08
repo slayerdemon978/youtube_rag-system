@@ -20,7 +20,17 @@
                 <div class="flash-messages">
                     {% for category, message in messages %}
                         <div class="flash-message flash-{{ category }}">
-                            <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-triangle' }}"></i>
+                            {% if category == 'success' %}
+                                <i class="fas fa-check-circle"></i>
+                            {% elif category == 'error' %}
+                                <i class="fas fa-exclamation-triangle"></i>
+                            {% elif category == 'warning' %}
+                                <i class="fas fa-exclamation-circle"></i>
+                            {% elif category == 'info' %}
+                                <i class="fas fa-info-circle"></i>
+                            {% else %}
+                                <i class="fas fa-bell"></i>
+                            {% endif %}
                             {{ message }}
                         </div>
                     {% endfor %}

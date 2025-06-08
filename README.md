@@ -4,16 +4,32 @@ A powerful **Retrieval-Augmented Generation (RAG)** system that fetches YouTube 
 
 ## 🌟 Features
 
-- **📥 Robust Transcript Fetching**: Multiple fallback methods for YouTube transcript retrieval
-- **📝 Manual Transcript Input**: Add transcripts manually when automatic fetching fails
+### 🚀 **Enhanced Transcript Fetching (v2.0)**
+- **📥 Advanced Fallback System**: Multiple robust methods for YouTube transcript retrieval
+- **🔄 Intelligent Retry Logic**: Automatic retries with different languages and methods
+- **🌍 Multi-Language Support**: Supports English variants (US, UK, CA, AU) and auto-detection
+- **⚡ Smart Error Handling**: Detailed error messages with helpful suggestions
+- **🛡️ Graceful Degradation**: Falls back to manual input when automatic fetching fails
+
+### 📝 **Improved Manual Input System**
+- **🧹 Automatic Text Cleaning**: Removes timestamps and cleans formatting automatically
+- **✅ Input Validation**: Validates transcript quality and provides warnings
+- **📊 Content Analysis**: Checks transcript length and word count for quality assurance
+- **🔄 Duplicate Detection**: Warns when overwriting existing transcripts
+
+### 🎯 **Smart Web Interface**
 - **📋 Playlist Support**: Fetch transcripts from entire YouTube playlists using YouTube API
 - **🔍 Vector Search**: Create FAISS vector stores for semantic search
 - **🤖 AI Q&A**: Ask questions about video content using Microsoft Phi-2 model
-- **🌐 Enhanced Web Interface**: Beautiful, responsive Flask web application with error handling
+- **🌐 Enhanced Web Interface**: Beautiful, responsive Flask web application
 - **💻 CPU Only**: No GPU required - runs on any machine
 - **📱 Mobile Friendly**: Responsive design works on all devices
-- **🛡️ Error Recovery**: Graceful handling of transcript failures with manual input option
-- **🌍 Multi-Language Support**: Automatic detection and fallback for different transcript languages
+
+### 🛠️ **Advanced Error Recovery**
+- **💡 Contextual Suggestions**: Provides specific suggestions based on error type
+- **🔧 Multiple Flash Message Types**: Success, error, warning, and info messages
+- **📈 Progress Tracking**: Shows detailed progress for playlist processing
+- **🎯 Targeted Help**: Specific guidance for different failure scenarios
 
 ## 🏗️ Project Structure
 
@@ -123,28 +139,47 @@ pip install --user -r requirements.txt
 
 ## 📖 Usage Guide
 
-### Web Interface
+### 🌐 Web Interface
 
-1. **Fetch Single Video**:
+#### 1. **Enhanced Single Video Fetching**:
    - Enter a YouTube URL in the "Fetch Transcript" section
-   - Click "Fetch Transcript" - this automatically creates a vector store
-   - If fetching fails, you'll see an error message with manual input suggestion
+   - Click "Fetch Transcript" - the system will:
+     - Try multiple languages (English variants + auto-detection)
+     - Retry failed attempts automatically
+     - Show detailed progress and suggestions
+     - Automatically create a vector store on success
+   - If fetching fails, you'll see:
+     - Specific error messages explaining why it failed
+     - Helpful suggestions for manual input
+     - Available language information (if any)
 
-2. **Manual Transcript Input** (New Feature):
-   - Use this when automatic fetching fails
-   - Enter the video title and paste the transcript text
-   - Click "Save Manual Transcript" - automatically creates a vector store
-   - Perfect for private videos, restricted content, or when API limits are reached
+#### 2. **Improved Manual Transcript Input**:
+   - **When to use**: Automatic fetching fails, private videos, restricted content
+   - **Features**:
+     - Automatic timestamp removal (detects patterns like `00:01:30`)
+     - Text quality validation and warnings
+     - Duplicate file detection
+     - Automatic vector store creation
+   - **How to use**:
+     - Enter a descriptive video title
+     - Paste the transcript text (timestamps will be cleaned automatically)
+     - Click "Save Manual Transcript"
+     - System provides warnings for quality issues
 
-3. **Fetch Playlist** (YouTube API):
+#### 3. **Smart Playlist Processing**:
    - Enter a YouTube playlist URL
-   - The system will fetch all videos in the playlist
-   - Failed videos are logged, successful ones are processed
+   - The system will:
+     - Fetch all videos in the playlist using YouTube API
+     - Process each video with enhanced error handling
+     - Show detailed progress (success/failure counts)
+     - Continue processing even if some videos fail
+     - Provide summary of results
 
-4. **Ask Questions**:
-   - Select a transcript from the dropdown
+#### 4. **Intelligent Q&A System**:
+   - Select a transcript from the dropdown (only shows transcripts with vector stores)
    - Type your question in the text area
    - Click "Ask Question" to get AI-powered answers
+   - View question history and previous answers
 
 ### CLI Interface
 
@@ -289,12 +324,20 @@ Once you have transcripts loaded, you can ask questions like:
    pip install --user package_name
    ```
 
-4. **Transcript Fetching Issues** (Enhanced Error Handling):
-   - **Automatic Retry**: System tries multiple methods and languages
-   - **Manual Input**: Use the "Manual Transcript Input" section when automatic fetching fails
-   - **Common Causes**: Private videos, disabled captions, region restrictions
-   - **Solution**: Copy transcript manually from YouTube and paste into the manual input form
-   - **Tip**: Look for the "Show transcript" button on YouTube videos
+4. **Enhanced Transcript Fetching Issues** (v2.0 Improvements):
+   - **🔄 Automatic Retry System**: Tries multiple methods, languages, and transcript types
+   - **🎯 Smart Error Detection**: Identifies specific issues (disabled transcripts, language mismatches)
+   - **💡 Contextual Suggestions**: Provides specific guidance based on the error type
+   - **🌍 Language Support**: Attempts English variants (US, UK, CA, AU) and auto-generated transcripts
+   - **📝 Manual Input Guidance**: Step-by-step instructions for manual transcript extraction
+   - **⚠️ Quality Warnings**: Alerts for short transcripts, timestamp issues, or formatting problems
+   
+   **Common Error Types & Solutions**:
+   - `TranscriptsDisabled`: Video creator disabled transcripts → Use manual input
+   - `NoTranscriptFound`: No transcript in requested language → Try different language or manual input
+   - `Private/Restricted Video`: Video not accessible → Use manual input with copied transcript
+   - `Network Issues`: Connection problems → Check internet and retry
+   - `Very Short Transcript`: Quality warning → Verify content completeness
 
 5. **Model Loading Slow**:
    - First-time model download can take several minutes
@@ -313,6 +356,40 @@ Once you have transcripts loaded, you can ask questions like:
 - `❌ Error fetching transcript`: Video has no available transcript
 - `❌ Error creating vector store`: Issue with text processing or model loading
 - `❌ Error generating answer`: Problem with the language model
+
+## 🆕 What's New in v2.0
+
+### 🚀 **Major Improvements**
+
+#### **Enhanced Transcript Fetching**
+- **Multi-Language Retry System**: Automatically tries English variants (US, UK, CA, AU) and auto-detection
+- **Intelligent Error Handling**: Specific error detection for disabled transcripts, language issues, etc.
+- **Smart Fallback Logic**: Tries manual transcripts, auto-generated transcripts, and different transcript types
+- **Detailed Progress Feedback**: Shows exactly what the system is trying and why it failed
+
+#### **Improved Manual Input**
+- **Automatic Text Cleaning**: Removes timestamps automatically using pattern detection
+- **Quality Validation**: Checks transcript length, word count, and content quality
+- **Smart Warnings**: Alerts for potential issues like very short content or excessive timestamp removal
+- **Duplicate Detection**: Warns when overwriting existing files
+
+#### **Better User Experience**
+- **Enhanced Flash Messages**: Success, error, warning, and info message types with appropriate icons
+- **Contextual Help**: Specific suggestions based on the type of error encountered
+- **Improved Error Recovery**: Graceful handling of failures with actionable next steps
+- **Progress Tracking**: Better feedback during playlist processing
+
+#### **Technical Improvements**
+- **Robust Video ID Extraction**: Handles multiple YouTube URL formats
+- **Safe Filename Generation**: Proper sanitization of video titles for file system compatibility
+- **Better Exception Handling**: More specific error catching and reporting
+- **Retry Logic**: Automatic retries with delays for transient failures
+
+### 🔧 **Under the Hood**
+- **Pure Python Implementation**: No direct API dependencies for transcript fetching
+- **Multiple Fallback Methods**: Uses `youtube-transcript-api` and `pytube` with intelligent switching
+- **Enhanced Vector Store Creation**: Automatic creation with better error handling
+- **Improved Web Interface**: Better responsive design and user feedback
 
 ## 📋 How to Get Transcripts Manually from YouTube
 
