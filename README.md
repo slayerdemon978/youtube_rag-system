@@ -4,13 +4,16 @@ A powerful **Retrieval-Augmented Generation (RAG)** system that fetches YouTube 
 
 ## 🌟 Features
 
-- **📥 Transcript Fetching**: Automatically download transcripts from YouTube videos
+- **📥 Robust Transcript Fetching**: Multiple fallback methods for YouTube transcript retrieval
+- **📝 Manual Transcript Input**: Add transcripts manually when automatic fetching fails
 - **📋 Playlist Support**: Fetch transcripts from entire YouTube playlists using YouTube API
 - **🔍 Vector Search**: Create FAISS vector stores for semantic search
 - **🤖 AI Q&A**: Ask questions about video content using Microsoft Phi-2 model
-- **🌐 Web Interface**: Beautiful, responsive Flask web application
+- **🌐 Enhanced Web Interface**: Beautiful, responsive Flask web application with error handling
 - **💻 CPU Only**: No GPU required - runs on any machine
 - **📱 Mobile Friendly**: Responsive design works on all devices
+- **🛡️ Error Recovery**: Graceful handling of transcript failures with manual input option
+- **🌍 Multi-Language Support**: Automatic detection and fallback for different transcript languages
 
 ## 🏗️ Project Structure
 
@@ -125,12 +128,20 @@ pip install --user -r requirements.txt
 1. **Fetch Single Video**:
    - Enter a YouTube URL in the "Fetch Transcript" section
    - Click "Fetch Transcript" - this automatically creates a vector store
+   - If fetching fails, you'll see an error message with manual input suggestion
 
-2. **Fetch Playlist** (YouTube API):
+2. **Manual Transcript Input** (New Feature):
+   - Use this when automatic fetching fails
+   - Enter the video title and paste the transcript text
+   - Click "Save Manual Transcript" - automatically creates a vector store
+   - Perfect for private videos, restricted content, or when API limits are reached
+
+3. **Fetch Playlist** (YouTube API):
    - Enter a YouTube playlist URL
    - The system will fetch all videos in the playlist
+   - Failed videos are logged, successful ones are processed
 
-3. **Ask Questions**:
+4. **Ask Questions**:
    - Select a transcript from the dropdown
    - Type your question in the text area
    - Click "Ask Question" to get AI-powered answers
@@ -278,9 +289,12 @@ Once you have transcripts loaded, you can ask questions like:
    pip install --user package_name
    ```
 
-4. **Transcript Not Available**:
-   - Some videos don't have transcripts
-   - Try videos with auto-generated captions
+4. **Transcript Fetching Issues** (Enhanced Error Handling):
+   - **Automatic Retry**: System tries multiple methods and languages
+   - **Manual Input**: Use the "Manual Transcript Input" section when automatic fetching fails
+   - **Common Causes**: Private videos, disabled captions, region restrictions
+   - **Solution**: Copy transcript manually from YouTube and paste into the manual input form
+   - **Tip**: Look for the "Show transcript" button on YouTube videos
 
 5. **Model Loading Slow**:
    - First-time model download can take several minutes
@@ -299,6 +313,33 @@ Once you have transcripts loaded, you can ask questions like:
 - `❌ Error fetching transcript`: Video has no available transcript
 - `❌ Error creating vector store`: Issue with text processing or model loading
 - `❌ Error generating answer`: Problem with the language model
+
+## 📋 How to Get Transcripts Manually from YouTube
+
+When automatic transcript fetching fails, you can manually extract transcripts:
+
+### Method 1: YouTube Web Interface
+1. **Open the video** on YouTube
+2. **Click the "..." menu** below the video
+3. **Select "Show transcript"** from the dropdown
+4. **Copy the transcript text** (you can click the toggle to remove timestamps)
+5. **Paste into the "Manual Transcript Input"** section in the web app
+
+### Method 2: YouTube Mobile App
+1. **Open the video** in the YouTube mobile app
+2. **Tap the video description** to expand it
+3. **Look for "Show transcript"** option
+4. **Copy the text** and paste into the web app
+
+### Method 3: Browser Extensions
+- Use browser extensions like "YouTube Transcript" for easier copying
+- These extensions can format transcripts automatically
+
+### Tips for Manual Input:
+- ✅ **Remove timestamps** if present (the system handles plain text better)
+- ✅ **Use descriptive titles** for easy identification
+- ✅ **Include speaker names** if it's a multi-person discussion
+- ✅ **Clean up obvious transcription errors** if you notice them
 
 ## 🤝 Contributing
 

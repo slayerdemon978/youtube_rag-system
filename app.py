@@ -6,7 +6,7 @@ Flask Web Application for YouTube Transcript RAG System
 import os
 import json
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
-from backend.transcript_fetcher import fetch_transcript
+from backend.transcript_fetcher import fetch_transcript, save_manual_transcript
 from backend.vector_store import create_vector_store
 from backend.rag_engine import RAGEngine
 import googleapiclient.discovery
@@ -113,17 +113,23 @@ def fetch_transcript_route():
             flash('Please provide a YouTube URL', 'error')
             return redirect(url_for('index'))
         
-        # Fetch transcript
-        file_path = fetch_transcript(video_url)
+        # Fetch transcript with improved error handling
+        result = fetch_transcript(video_url)
         
-        # Create vector store automatically
-        base_name = create_vector_store(file_path)
+        if result['success']:
+            # Create vector store automatically
+            base_name = create_vector_store(result['file_path'])
+            flash(f'✅ Transcript fetched and vector store created for: {result["title"]}', 'success')
+        else:
+            # Show error with option for manual input
+            error_msg = f'❌ Failed to fetch transcript for "{result["title"] or "video"}": {result["error"]}'
+            flash(error_msg, 'error')
+            flash('💡 You can manually add the transcript using the "Manual Input" section below.', 'info')
         
-        flash(f'Transcript fetched and vector store created for: {base_name}', 'success')
         return redirect(url_for('index'))
         
     except Exception as e:
-        flash(f'Error fetching transcript: {str(e)}', 'error')
+        flash(f'❌ Error processing video: {str(e)}', 'error')
         return redirect(url_for('index'))
 
 @app.route('/fetch_playlist', methods=['POST'])
@@ -143,11 +149,15 @@ def fetch_playlist_route():
         
         for video in videos:
             try:
-                # Fetch transcript for each video
-                file_path = fetch_transcript(video['url'])
-                # Create vector store
-                create_vector_store(file_path)
-                success_count += 1
+                # Fetch transcript for each video with improved error handling
+                result = fetch_transcript(video['url'])
+                if result['success']:
+                    # Create vector store
+                    create_vector_store(result['file_path'])
+                    success_count += 1
+                else:
+                    print(f"Failed to fetch transcript for {video['title']}: {result['error']}")
+                    error_count += 1
             except Exception as e:
                 print(f"Error processing video {video['title']}: {e}")
                 error_count += 1
@@ -180,6 +190,33 @@ def create_vector_store_route():
         
     except Exception as e:
         flash(f'Error creating vector store: {str(e)}', 'error')
+        return redirect(url_for('index'))
+
+@app.route('/manual_transcript', methods=['POST'])
+def manual_transcript_route():
+    """Save manually provided transcript"""
+    try:
+        title = request.form.get('title', '').strip()
+        transcript_text = request.form.get('transcript_text', '').strip()
+        
+        if not title or not transcript_text:
+            flash('Please provide both title and transcript text', 'error')
+            return redirect(url_for('index'))
+        
+        # Save manual transcript
+        result = save_manual_transcript(title, transcript_text)
+        
+        if result['success']:
+            # Create vector store automatically
+            base_name = create_vector_store(result['file_path'])
+            flash(f'✅ Manual transcript saved and vector store created for: {result["title"]}', 'success')
+        else:
+            flash(f'❌ Failed to save manual transcript: {result["error"]}', 'error')
+        
+        return redirect(url_for('index'))
+        
+    except Exception as e:
+        flash(f'❌ Error saving manual transcript: {str(e)}', 'error')
         return redirect(url_for('index'))
 
 @app.route('/ask_question', methods=['POST'])

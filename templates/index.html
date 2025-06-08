@@ -54,6 +54,25 @@
                 </div>
 
                 <div class="section">
+                    <h2><i class="fas fa-edit"></i> Manual Transcript Input</h2>
+                    <form action="/manual_transcript" method="POST" class="form-group">
+                        <label for="title">Video Title:</label>
+                        <input type="text" id="title" name="title" placeholder="Enter video title..." required>
+                        
+                        <label for="transcript_text">Transcript Text:</label>
+                        <textarea id="transcript_text" name="transcript_text" placeholder="Paste the transcript text here..." rows="6" required></textarea>
+                        
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-save"></i> Save Manual Transcript
+                        </button>
+                    </form>
+                    <p class="help-text">
+                        <i class="fas fa-info-circle"></i> 
+                        Use this when automatic transcript fetching fails. The system will automatically create a vector store for your manual transcript.
+                    </p>
+                </div>
+
+                <div class="section">
                     <h2><i class="fas fa-database"></i> Create Vector Store</h2>
                     {% if transcripts %}
                         <form action="/create_vector_store" method="POST" class="form-group">
