@@ -1,0 +1,28 @@
+# Minimal requirements for Windows installation
+# Install these one by one if you encounter issues
+
+# Core web framework
+flask==3.0.0
+
+# YouTube functionality
+youtube-transcript-api==0.6.1
+pytube==15.0.0
+
+# Basic ML dependencies
+numpy==1.24.4
+torch==2.1.0 --index-url https://download.pytorch.org/whl/cpu
+
+# Sentence transformers (install after torch)
+sentence-transformers==2.2.2
+
+# Vector database
+faiss-cpu==1.7.4
+
+# Language model
+transformers==4.35.0
+
+# Text processing
+langchain==0.0.350
+
+# Google API
+google-api-python-client==2.108.0

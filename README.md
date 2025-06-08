@@ -43,9 +43,24 @@ cd youtube_rag-system
 
 ### 2. Install Dependencies
 
+**For Linux/Mac:**
 ```bash
 pip install -r requirements.txt
 ```
+
+**For Windows:**
+```cmd
+# Option 1: Use the automated fix script
+python fix_windows_install.py
+
+# Option 2: Use batch file
+install_windows.bat
+
+# Option 3: Manual installation with --user flag
+pip install --user -r requirements.txt
+```
+
+**Windows Users:** If you encounter permission errors, see [WINDOWS_SETUP.md](WINDOWS_SETUP.md) for detailed troubleshooting.
 
 ### 3. Run the Web Application
 
@@ -159,7 +174,24 @@ Once you have transcripts loaded, you can ask questions like:
 
 ### Common Issues
 
-1. **Transcript Not Available**:
+1. **Windows Installation Errors**:
+   - Use `python fix_windows_install.py` for automated fixes
+   - Run Command Prompt as Administrator
+   - See [WINDOWS_SETUP.md](WINDOWS_SETUP.md) for detailed solutions
+
+2. **Module Not Found Errors**:
+   ```bash
+   # Try installing with --user flag
+   pip install --user package_name
+   
+   # Or use virtual environment
+   python -m venv venv
+   source venv/bin/activate  # Linux/Mac
+   venv\Scripts\activate     # Windows
+   pip install -r requirements.txt
+   ```
+
+3. **Transcript Not Available**:
    - Some videos don't have transcripts
    - Try videos with auto-generated captions
 
